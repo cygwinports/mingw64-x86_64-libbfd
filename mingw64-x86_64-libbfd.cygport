@@ -1,0 +1,33 @@
+CROSS_HOST="x86_64-w64-mingw32"
+inherit cross
+
+NAME="mingw64-x86_64-libbfd"
+VERSION=2.22.52
+RELEASE=1
+CATEGORY="Devel"
+SUMMARY="BFD library for Win64 toolchain"
+DESCRIPTION="This package does NOT contain cygwin binaries.  Instead, it
+contains msvcrt-linked binaries (aka 'mingw').  It is for use with the
+mingw-gcc cross compiler, and installs into the
+/usr/x86_64-w64-mingw32/sys-root/mingw/{lib,include} directories."
+HOMEPAGE="http://www.gnu.org/software/binutils/"
+case ${PV[3]} in
+[5-9][0-9])
+	SRC_URI="mirror://sourceware/binutils/snapshots/binutils-${VERSION}.tar.bz2" ;;
+*)	SRC_URI="mirror://gnu/binutils/binutils-${VERSION}.tar.bz2" ;;
+esac
+SRC_DIR="binutils-${VERSION}"
+PATCH_URI="config-rpath.patch"
+
+src_compile() {
+	cd ${B}
+	cygconf --disable-nls --disable-werror
+	cygmake all-libiberty all-opcodes all-bfd
+}
+
+src_install() {
+	cd ${B}
+	cygmake install-libiberty install-opcodes install-bfd DESTDIR=${D}
+	mv ${D}${CROSS_PREFIX}/lib64/* ${D}${CROSS_LIBDIR}/
+	rm -fr ${D}${CROSS_DATADIR}/info/
+}
